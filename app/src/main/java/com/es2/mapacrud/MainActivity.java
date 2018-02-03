@@ -3,11 +3,13 @@ package com.es2.mapacrud;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Service;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Criteria;
@@ -27,6 +29,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 
 import com.es2.mapacrud.database.models.Photo;
 import com.es2.mapacrud.database.controllers.PhotoController;
@@ -36,8 +39,31 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
+
+    private SensorManager sensorManager;
+    private SensorEventListener mEventListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                getAccelerometer(sensorEvent);
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+
+        }
+
+        private void getAccelerometer(SensorEvent event) {
+            float[] values = event.values;
+            mValuesOrientation[0] = values[0];
+            mValuesOrientation[1] = values[1];
+            mValuesOrientation[2] = values[2];
+        }
+    };
 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1;
@@ -54,12 +80,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private Button takePhotoButton;
     private ImageView takenImageView;
+    private ListView listView;
 
     private String mCurrentPhotoPath;
     private double latitude, longitude;
 
-    SensorManager sensorManager;
-    SensorEventListener mEventListener;
+
     private String bestProvider;
     private Criteria criteria;
     private CharSequence test;
@@ -74,15 +100,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //Conecta ao BD e carrega as fotos
         photoController = new PhotoController(this);
         photoController.open();
-        Log.e("LOL:", photoController.getAllPhotos().toString());
+        this.fillImagesList();
 
-        sensorManager = (SensorManager) this.getSystemService(SENSOR_SERVICE);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
         setListners(sensorManager, mEventListener);
 
-        takePhotoButton = findViewById(R.id.button);
-        takenImageView = findViewById(R.id.imageView);
+        takePhotoButton = findViewById(R.id.photoButton);
 
         g_locationManager = (LocationManager) getSystemService(Service.LOCATION_SERVICE);
         g_isGPS = g_locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -104,6 +131,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
     }
+
+    private void fillImagesList () {
+        List<Photo> Lphotos = photoController.getAllPhotos();
+        Log.i("lol1:", Lphotos.toString());
+        CustomListAdapter adapter = new CustomListAdapter(this, Lphotos.toArray(new Photo[Lphotos.size()]));
+        Log.i("lol2:", Lphotos.toArray(new Photo[Lphotos.size()])[0].toString());
+        listView = (ListView) findViewById(R.id.list);
+        listView.setAdapter(adapter);
+    }
+
 
 
 
@@ -161,19 +198,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,"com.example.android.fileprovider", photoFile);
                 getLocation();
-
-
-
-
-
-
-
-
-
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-
-
             }
         }
     }
@@ -189,20 +215,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             new_photo.setY(mValuesOrientation[1]);
             new_photo.setZ(mValuesOrientation[2]);
             photoController.addPhoto(new_photo);
-
-            File file = new File(mCurrentPhotoPath);
-            Uri uri = Uri.fromFile(file);
-            Bitmap imageBitmap;
-            try {
-                imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                takenImageView.setImageBitmap(imageBitmap);
-            }
-            catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+            this.fillImagesList();
         }
     }
 
@@ -293,8 +306,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     {
         sensorManager.registerListener(mEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
                 SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(mEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                SensorManager.SENSOR_DELAY_NORMAL);
+        /*sensorManager.registerListener(mEventListener, sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+                SensorManager.SENSOR_DELAY_NORMAL);*/
     }
 
 
