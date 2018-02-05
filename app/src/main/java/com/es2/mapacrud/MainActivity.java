@@ -120,12 +120,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 Object o = listView.getItemAtPosition(i);
                 Photo p = (Photo) o;
                 CharSequence latLong = "Latitude: " + p.getLat() + " Longitude" + p.getLng();
-
-                /*Uri gmmIntentUri = Uri.parse("google.streetview:cbll="+p.getLat()+","+p.getLng());
-                Log.e("LOL: ", gmmIntentUri.toString());
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setPackage("com.google.android.apps.maps");
-                startActivity(mapIntent);*/
                 newIntent.putExtra(LATITUDE, p.getLat());
                 newIntent.putExtra(LONGITUDE, p.getLng());
                 newIntent.putExtra(IMGNUM, i);
@@ -167,8 +161,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void fillImagesList () {
         List<Photo> Lphotos = photoController.getAllPhotos();
         Log.i("lol1:", Lphotos.toString());
-        CustomListAdapter adapter = new CustomListAdapter(this, Lphotos.toArray(new Photo[Lphotos.size()]));
-        Log.i("lol2:", Lphotos.toArray(new Photo[Lphotos.size()])[0].toString());
+        CustomListAdapter adapter = new CustomListAdapter(this, Lphotos.toArray(new Photo[Lphotos.size()]).length == 0 ? new Photo[0] : Lphotos.toArray(new Photo[Lphotos.size()]));
+
         listView = (ListView) findViewById(R.id.list);
         listView.setAdapter(adapter);
     }
