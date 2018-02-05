@@ -27,6 +27,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -68,6 +69,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1;
     private static final long MIN_TIME_BW_UPDATES = 1;
+    public static final String LATITUDE = "latitude";
+    public static final String LONGITUDE = "longitude";
+    public static final String IMGNUM = "imgnum";
+    public static final String X = "x";
+    public static final String Y = "y";
+    public static final String Z = "z";
 
     private PhotoController photoController;
 
@@ -105,6 +112,30 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         photoController.open();
         this.fillImagesList();
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent newIntent = new Intent(view.getContext(), MapsActivity.class);
+                Object o = listView.getItemAtPosition(i);
+                Photo p = (Photo) o;
+                CharSequence latLong = "Latitude: " + p.getLat() + " Longitude" + p.getLng();
+
+                /*Uri gmmIntentUri = Uri.parse("google.streetview:cbll="+p.getLat()+","+p.getLng());
+                Log.e("LOL: ", gmmIntentUri.toString());
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);*/
+                newIntent.putExtra(LATITUDE, p.getLat());
+                newIntent.putExtra(LONGITUDE, p.getLng());
+                newIntent.putExtra(IMGNUM, i);
+                newIntent.putExtra(X, p.getX());
+                newIntent.putExtra(Y, p.getY());
+                newIntent.putExtra(Z, p.getZ());
+                startActivityForResult(newIntent, 0);
+            }
+        });
+
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         setListners(sensorManager, mEventListener);
@@ -132,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         });
     }
 
+
     private void fillImagesList () {
         List<Photo> Lphotos = photoController.getAllPhotos();
         Log.i("lol1:", Lphotos.toString());
@@ -140,7 +172,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         listView = (ListView) findViewById(R.id.list);
         listView.setAdapter(adapter);
     }
-
 
 
 

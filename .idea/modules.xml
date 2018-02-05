@@ -3,7 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/mapacrud.iml" filepath="$PROJECT_DIR$/mapacrud.iml" />
+      <module fileurl="file://$PROJECT_DIR$/capp.iml" filepath="$PROJECT_DIR$/capp.iml" />
+      <module fileurl="file://C:\Users\Larissa\Documents\GitHub\capp\mapacrud.iml" filepath="C:\Users\Larissa\Documents\GitHub\capp\mapacrud.iml" />
     </modules>
   </component>
 </project>
